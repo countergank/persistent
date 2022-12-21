@@ -13,6 +13,7 @@ import {
 } from "./cookies";
 import {
   BasicConfig,
+  defaultHttpHeaders,
   getConfig,
   simpleRequest,
 } from "./config";
@@ -182,40 +183,50 @@ export const httpRequest = async (
   method?: "GET" | "POST" | "PUT" | "DELETE",
   body?: any,
   timeout?: number,
-  header?: HeadersInit
+  header?: HeadersInit,
+  ftoken?: string
 ): Promise<any> => {
   const config = await getConfig();
   url = urlReplace(url, config);
-  return simpleRequest(url, method, body, header, timeout);
+  return simpleRequest(url, method, body, header, timeout, ftoken);
 };
 
 export const appUrl = async (
   item: Application,
   config: BasicConfig | undefined
 ): Promise<string> => {
-  const infoUser = getUserLoggedInfo();
   let url = item.url || "";
   if (item.config?.includeToken) {
-    if (infoUser && config) {
+    if (!config) return "";
+
+    const infoUser = getUserLoggedInfo();
+    if (infoUser) {
       const key = compressSessionKey(infoUser.user, item);
       url += `/${key}`;
-      await httpRequest(`${config.APIUser}/user/session`, "POST", {
-        key,
-        token: base64_encode(
-          JSON.stringify({
-            user: infoUser.user,
-            token: infoUser.token,
-            url: item.config?.params || "",
-          })
-        ),
-      }).catch((error) => {
+      await httpRequest(
+        `${config.APIUser}/user/session`,
+        "POST",
+        {
+          key,
+          token: base64_encode(
+            JSON.stringify({
+              user: infoUser.user,
+              token: infoUser.token,
+              url: item.config?.params || "",
+            })
+          ),
+        },
+        undefined,
+        undefined,
+        infoUser.token
+      ).catch((error) => {
         console.error("appUrl", error);
-        return "";
       });
-    } else {
-      return "";
     }
+
+    return "";
   }
+
   return url;
 };
 
@@ -387,57 +398,8 @@ export class httpConnection {
   }
 
   async files(endpoint: string, body: FormData): Promise<any> {
-    return new Promise(async (resolve, reject) => {
-      const url = await this.getUrl(endpoint);
-
-      const headers = {
-        Authorization: "",
-      };
-
-      const token = getUserLoggedInfo()?.token || "";
-      if (token) {
-        headers.Authorization = "Bearer " + token;
-      }
-
-      fetch(url, {
-        method: "POST",
-        mode: "cors",
-        headers,
-        body,
-      })
-        .then(async (response) => {
-          try {
-            return {
-              status: response.status,
-              data: await response.json(),
-            };
-          } catch (error) {
-            return {
-              status: response.status,
-              data: {},
-            };
-          }
-        })
-        .then((info) => {
-          if (info.status < 400) {
-            if (this.returnDataResponseProp === true) {
-              return resolve(info);
-            } else {
-              return resolve(info.data);
-            }
-          }
-          reject(info);
-        })
-        .catch((error) => {
-          reject({
-            status: 500,
-            data: {
-              message: "Se encontraron problemas de conectividad",
-              description: error,
-            },
-          });
-        });
-    });
+    const url = await this.getUrl(endpoint);
+    return httpFiles(url, body);
   }
 }
 

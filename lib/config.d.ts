@@ -15,7 +15,7 @@ export interface BasicConfig {
     [value: string]: any;
 }
 export declare const defaultHttpHeaders: (header?: HeadersInit) => Record<string, string>;
-export declare const simpleRequest: (url: string, method?: "GET" | "POST" | "PUT" | "DELETE", body?: any, header?: HeadersInit, timeout?: number) => Promise<any>;
+export declare const simpleRequest: (url: string, method?: "GET" | "POST" | "PUT" | "DELETE", body?: any, header?: HeadersInit, timeout?: number, ftoken?: string) => Promise<any>;
 export declare const replaceReactApp: (data: any) => any;
 export declare const getConfig: (path?: string) => Promise<BasicConfig | undefined>;
 export declare function useConfig(pathConfig?: string): BasicConfig | undefined;

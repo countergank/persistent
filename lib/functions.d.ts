@@ -1,4 +1,6 @@
 import { BasicConfig } from "./config";
+import { FullUserLoggedCookie } from "./interfaces";
+import { UserLoggedCookie } from "./persistent";
 export declare const isPlatform: (type: "desktop" | "android" | "ios") => boolean;
 export declare const urlReplace: (url: string, config?: BasicConfig | undefined) => string;
 export declare const openUrl: (url: string, target?: string) => void;
@@ -54,3 +56,4 @@ export declare const errorFn: (_error: any) => void;
 export declare const testIsRunning: () => boolean;
 export declare const toString: (value: any, def?: string) => string;
 export declare function toArray<T>(array?: T[] | void): T[];
+export declare const convertLoggedInfo: (value: FullUserLoggedCookie) => UserLoggedCookie;

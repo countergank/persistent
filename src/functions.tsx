@@ -1,6 +1,8 @@
 /* eslint-disable eqeqeq */
 import { Base64 } from "./aes";
 import { BasicConfig } from "./config";
+import { FullUserLoggedCookie } from "./interfaces";
+import { UserLoggedCookie } from "./persistent";
 
 export const isPlatform = (type: "desktop" | "android" | "ios"): boolean => {
   // eslint-disable-next-line no-restricted-globals
@@ -683,3 +685,53 @@ export function toArray<T>(array?: T[] | void): T[] {
   }
   return array;
 }
+
+export const convertLoggedInfo = (
+  value: FullUserLoggedCookie
+): UserLoggedCookie => {
+  return {
+    token: value.token,
+    timeout: value.timeout,
+    user: {
+      applications: value.user.applications,
+      company: {
+        id: value.user.company.id,
+        name: value.user.company.name,
+      },
+      email: value.user.email,
+      firstName: value.user.firstName,
+      groups: value.user.groups.map((item) => {
+        return {
+          id: item.id,
+          name: item.name,
+          externalId: item.externalId,
+        };
+      }),
+      id: value.user.id,
+      lastName: value.user.lastName,
+      nick: value.user.nick,
+      specialGroups: [], // value.user.specialGroups,
+      username: value.user.username,
+      allRoles: toArray(value.user.allRoles).map((item) => {
+        return {
+          appId: item.appId,
+          id: item.id,
+          name: item.role,
+          permissions: item.permissions.map((sitem) => {
+            return {
+              element: sitem.element.name,
+              componentId: sitem.componentId,
+              componentName: sitem.componentName,
+              permission: sitem.permission,
+            };
+          }),
+          appName: item.appName,
+        };
+      }),
+      avatarId: value.user.avatarId,
+      configs: value.user.configs,
+      filters: value.user.filters,
+      fullName: value.user.fullName,
+    },
+  };
+};

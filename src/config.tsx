@@ -5,6 +5,7 @@ import {
   getAppStyleName,
   getConfigName,
   getUserLoggedInfo,
+  httpRequest,
   setUserLoggedInfo,
 } from "./persistent";
 
@@ -45,7 +46,8 @@ export const simpleRequest = (
   method?: "GET" | "POST" | "PUT" | "DELETE",
   body?: any,
   header?: HeadersInit,
-  timeout?: number
+  timeout?: number,
+  ftoken?: string
 ): Promise<any> => {
   return new Promise(async (resolve, reject) => {
     if (!method) method = "GET";
@@ -64,8 +66,10 @@ export const simpleRequest = (
       !headers["Authorization"] &&
       !headers["authorization"]
     ) {
-      const token = getUserLoggedInfo()?.token || "";
-      if (token) headers["Authorization"] = "Bearer " + token;
+      const token = ftoken || getUserLoggedInfo()?.token || "";
+      if (token && token !== "none") {
+        headers["Authorization"] = "Bearer " + token;
+      }
     }
 
     fetch(url, {
@@ -75,32 +79,32 @@ export const simpleRequest = (
       headers: defaultHttpHeaders(headers),
       signal: controller.signal,
     })
-      .then((response) => {
-        try {
-          return {
-            status: response.status,
-            data: response.json(),
-          };
-        } catch (error) {
-          return {
-            status: response.status,
-            data: {},
-          };
-        }
-      })
-      .then((info) => {
+      .then(async (info) => {
         clearTimeout(id);
-        if (info.status < 400) return resolve(info.data);
+
+        let data: any = undefined;
+
+        try {
+          data = await info.json();
+        } catch (error) {
+          data = {};
+        }
+
+        if (info.status < 400) {
+          return resolve(data);
+        }
 
         if (info.status === 401) {
-          setUserLoggedInfo(undefined);
+          setUserLoggedInfo();
+        }
+
+        if (!data || Object.keys(data).length === 0) {
+          data = { message: "Error Desconocido" };
         }
 
         reject({
           ...info,
-          data: {
-            message: "Error Desconocido",
-          },
+          data,
         });
       })
       .catch((error) => {
@@ -147,8 +151,6 @@ export const getConfig = async (
     info = {};
 
     const infoSuite = await simpleRequest(path + "suite.json").catch(errorFn);
-    const infoConfig = await simpleRequest(path + "config.json").catch(errorFn);
-
     const addConfig = (value: any) => {
       if (value) {
         for (const [name] of Object.entries(value)) {
@@ -158,9 +160,7 @@ export const getConfig = async (
         }
       }
     };
-
     addConfig(infoSuite);
-    addConfig(infoConfig);
   }
 
   if (info?.APIUser) {

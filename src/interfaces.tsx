@@ -1,3 +1,58 @@
+export interface FullUserLoggedCookie {
+  timeout?: number;
+  token: string;
+  user: FullUser;
+}
+
+export interface FullUser extends BaseInfo {
+  username: string;
+  firstName: string;
+  lastName: string;
+  nick: string;
+  email: string;
+  company: FullCompany;
+  applications: Application[];
+  groups: FullUserGroup[];
+  fullName?: string;
+  filters?: UserFilter[];
+  specialGroups: string[];
+  configs?: NameValue[];
+  avatarId?: string;
+  allRoles?: FullRol[];
+}
+
+export interface FullCompany extends BaseInfo {
+  name: string;
+  pwdPolicy?: {
+    pwdMinLength: number;
+    pwdMaxLength: number;
+    userMinLength: number;
+    userMaxLength: number;
+  };
+  domain: string;
+}
+
+export interface FullRol extends BaseInfo {
+  appId: string;
+  appName?: string;
+  role: string;
+  permissions: {
+    element: {
+      name: string;
+    };
+    componentId: string;
+    componentName?: string;
+    permission: boolean;
+  }[];
+}
+
+export interface FullUserGroup extends BaseInfo {
+  name: string;
+  company: FullCompany;
+  externalId?: string;
+  parentGroup?: FullUserGroup;
+}
+
 export interface OnlineInfo {
   timeout: number;
   timestampBegin: number;
@@ -37,32 +92,6 @@ export interface ItemValidation {
     | "equal";
   value: string | boolean | number;
 }
-
-export type TypeComponent =
-  | "buttons"
-  | "radio-group"
-  | "button"
-  | "text-area"
-  | "time"
-  | "file"
-  | "files"
-  | "password"
-  | "enum"
-  | "search"
-  | "boolean"
-  | "radiobutton"
-  | "number"
-  | "text"
-  | "string"
-  | "date"
-  | "divisor"
-  | "secondaryDivisor"
-  | "list"
-  | "long"
-  | "item"
-  | "datetime"
-  | "verifysummary"
-  | "endpoint";
 
 export interface ComponentInfo {
   name: string;
@@ -146,22 +175,6 @@ export interface FieldInfo {
   includeInVariable?: boolean;
 }
 
-export type WidgetGraphicType =
-  | "treemap"
-  | "gantt"
-  | "pie"
-  | "bar"
-  | "table"
-  | "line"
-  | "map"
-  | "calendar"
-  | "launcher"
-  | "bpmcountertask"
-  | "bpmtaskefficiency"
-  | "bpmcaseefficiency"
-  | "eventcalendar"
-  | "ideas";
-
 export interface WidgetTable {
   name: string;
   caption: string;
@@ -205,20 +218,6 @@ export enum FilterAction {
   "not contains" = "No Contiene",
 }
 
-export type FilterActionKeys =
-  | "eq"
-  | "neq"
-  | "gt"
-  | "lt"
-  | "gteq"
-  | "lteq"
-  | "in"
-  | "not in"
-  | "contains"
-  | "not contains"
-  | "assigned"
-  | "unassigned";
-
 export interface WidgetFilter {
   field: FieldInfo;
   action: FilterActionKeys;
@@ -237,29 +236,24 @@ interface BaseInfo {
   updatedAt?: string;
 }
 
-export interface Company extends BaseInfo {
+export interface Company {
+  id: string;
   name: string;
-  pwdPolicy?: {
-    pwdMinLength: number;
-    pwdMaxLength: number;
-    userMinLength: number;
-    userMaxLength: number;
-  };
-  domain: string;
 }
 
-export interface Rol extends BaseInfo {
+export interface RolPermission {
+  element: string;
+  componentId: string;
+  componentName?: string;
+  permission: boolean;
+}
+
+export interface Rol {
+  id: string;
   appId: string;
   appName?: string;
-  role: string;
-  permissions: {
-    element: {
-      name: string;
-    };
-    componentId: string;
-    componentName?: string;
-    permission: boolean;
-  }[];
+  name: string;
+  permissions: RolPermission[];
 }
 
 export interface Application extends BaseInfo {
@@ -293,30 +287,24 @@ export interface UserFilter extends BaseInfo {
   fields: ComponentInfo[];
 }
 
-export interface UserGroup extends BaseInfo {
-  name: string;
-  commonName?: string;
-  company: Company;
-  domain?: string;
+export interface UserGroup {
+  id: string;
   externalId?: string;
-  parentGroup?: UserGroup;
-  roles?: any[];
+  name: string;
 }
 
-export interface User extends BaseInfo {
+export interface User {
+  id: string;
   username: string;
   firstName: string;
   lastName: string;
   nick: string;
   email: string;
   company: Company;
-  userRoles: Rol[];
   applications: Application[];
   groups: UserGroup[];
   fullName?: string;
-
   filters?: UserFilter[];
-
   specialGroups: string[];
   configs?: NameValue[];
   avatarId?: string;
@@ -5881,3 +5869,59 @@ type HiddenIconName =
   | "ZoomOutRounded"
   | "ZoomOutSharp"
   | "ZoomOutTwoTone";
+
+export type TypeComponent =
+  | "buttons"
+  | "radio-group"
+  | "button"
+  | "text-area"
+  | "time"
+  | "file"
+  | "files"
+  | "password"
+  | "enum"
+  | "search"
+  | "boolean"
+  | "radiobutton"
+  | "number"
+  | "text"
+  | "string"
+  | "date"
+  | "divisor"
+  | "secondaryDivisor"
+  | "list"
+  | "long"
+  | "item"
+  | "datetime"
+  | "verifysummary"
+  | "endpoint";
+
+export type WidgetGraphicType =
+  | "treemap"
+  | "gantt"
+  | "pie"
+  | "bar"
+  | "table"
+  | "line"
+  | "map"
+  | "calendar"
+  | "launcher"
+  | "bpmcountertask"
+  | "bpmtaskefficiency"
+  | "bpmcaseefficiency"
+  | "eventcalendar"
+  | "ideas";
+
+export type FilterActionKeys =
+  | "eq"
+  | "neq"
+  | "gt"
+  | "lt"
+  | "gteq"
+  | "lteq"
+  | "in"
+  | "not in"
+  | "contains"
+  | "not contains"
+  | "assigned"
+  | "unassigned";

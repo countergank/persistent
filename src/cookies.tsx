@@ -26,7 +26,7 @@ export function encrypt(text: string | null): string {
   return aux;
 }
 
-export function getCookie(name: string, excludeEncode?: boolean) {
+export function getCookie(name: string, excludeDecode?: boolean) {
   var name = name + "=";
   var ca = document.cookie.split(";");
   for (var i = 0; i < ca.length; i++) {
@@ -34,7 +34,7 @@ export function getCookie(name: string, excludeEncode?: boolean) {
     if (c.indexOf(name) == 0) {
       let aux = c.substring(name.length, c.length);
       if (aux && aux != "undefined") {
-        return !excludeEncode ? decrypt(aux) : aux;
+        return !excludeDecode ? decrypt(aux) : aux;
       }
       return "";
     }

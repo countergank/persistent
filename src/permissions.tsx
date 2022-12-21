@@ -1,10 +1,16 @@
+import { toArray } from "./functions";
+import { User } from "./interfaces";
 import { getUserInfo } from "./persistent";
 
 export type DefaultAppComponent = "todos los componentes";
 export type DefaultAppElement = "todos los elementos";
 
 export class PermissionManager<Component, Element> {
-  constructor(private appName: string) {}
+  constructor(private appName: string, private user?: User) {}
+
+  setUser(fuser?: User) {
+    this.user = fuser;
+  }
 
   appId() {
     return this.appName;
@@ -20,8 +26,15 @@ export class PermissionManager<Component, Element> {
       const felementName: any = elementName;
 
       if (!this.appName || !fcomponentName || !felementName) return false;
-      const user = getUserInfo();
-      const roles = Array.isArray(user?.allRoles) ? user?.allRoles || [] : [];
+
+      if (!this.user) {
+        console.warn(
+          "[Deprecado] Usar funcion setUser para almacenar el usuario logueado dentro de la clase"
+        );
+        this.user = getUserInfo();
+      }
+
+      const roles = toArray(this.user?.allRoles);
       if (roles.length === 0) return false;
 
       const appRoles = roles.filter(
@@ -39,7 +52,7 @@ export class PermissionManager<Component, Element> {
             const all =
               !element.componentName ||
               element.componentName.toLowerCase() === "todos los componentes";
-            if (element.element.name.toLowerCase() === felementName) {
+            if (element.element.toLowerCase() === felementName) {
               if (
                 element.componentName &&
                 element.componentName.toLowerCase() === fcomponentName
@@ -51,7 +64,7 @@ export class PermissionManager<Component, Element> {
             } else if (
               strictCheck !== true &&
               all &&
-              element.element.name.toLowerCase() === "todos los elementos"
+              element.element.toLowerCase() === "todos los elementos"
             ) {
               permission2 = element.permission;
             }
